@@ -42,6 +42,9 @@ public class ShiftRequestService {
                 throw new ShiftMateException("該当店舗のスタッフのみシフト申請が可能です。");
             }
             StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフト申請ができません。");
+            }
             if (!"承認".equals(storeEmployee.getStatus())) {
                 if ("待機中".equals(storeEmployee.getStatus())) {
                     throw new ShiftMateException("店舗の店長の承認が必要です。");
@@ -99,6 +102,16 @@ public class ShiftRequestService {
                 throw new ShiftMateException("承認済みのシフトは変更できません。店長に相談してください。");
             }
             ShiftEntity newShift = shiftOptional.get();
+
+            Optional<StoreEmployeeEntity> storeEmployeeOptional = storeEmployeeRepository.findByStore_StoreNumberAndUser_UserNumber(newShift.getStore().getStoreNumber(), userNumber);
+            if (!storeEmployeeOptional.isPresent()) {
+                throw new ShiftMateException("該当店舗のスタッフのみシフト修正が可能です。");
+            }
+            StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフトの修正ができません。");
+            }
+
             if (newShift.getCurrentEmployees() >= newShift.getMaxEmployees()) {
                 throw new ShiftMateException("定員が締め切られました。他の時間帯を選んでください。");
             }
@@ -131,6 +144,17 @@ public class ShiftRequestService {
             ShiftRequestEntity request = shiftRequestOptional.get();
             if (!request.getUser().getUserNumber().equals(userNumber)) {
                 throw new ShiftMateException("ご自身のシフトのみ削除可能です。");
+            }
+            ShiftEntity shift = request.getShift();
+            Optional<StoreEmployeeEntity> storeEmployeeOptional = storeEmployeeRepository.findByStore_StoreNumberAndUser_UserNumber(shift.getStore().getStoreNumber(), userNumber);
+
+            if (!storeEmployeeOptional.isPresent()) {
+                throw new ShiftMateException("該当店舗のスタッフのみ処理が可能です。");
+            }
+            StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフトの削除ができません。");
             }
             if ("承認".equals(request.getStatus())) {
                 throw new ShiftMateException("承認済みのシフトは削除できません。店長に相談してください。");
