@@ -1,15 +1,9 @@
 package com.example.shiftmate.service;
 
 import com.example.shiftmate.dto.ShiftRequestDTO;
-import com.example.shiftmate.entity.ShiftEntity;
-import com.example.shiftmate.entity.ShiftRequestEntity;
-import com.example.shiftmate.entity.StoreEmployeeEntity;
-import com.example.shiftmate.entity.UserEntity;
+import com.example.shiftmate.entity.*;
 import com.example.shiftmate.exception.ShiftMateException;
-import com.example.shiftmate.repository.ShiftRepository;
-import com.example.shiftmate.repository.ShiftRequestRepository;
-import com.example.shiftmate.repository.StoreEmployeeRepository;
-import com.example.shiftmate.repository.UserRepository;
+import com.example.shiftmate.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,6 +42,9 @@ public class ShiftRequestService {
                 throw new ShiftMateException("該当店舗のスタッフのみシフト申請が可能です。");
             }
             StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフト申請ができません。");
+            }
             if (!"承認".equals(storeEmployee.getStatus())) {
                 if ("待機中".equals(storeEmployee.getStatus())) {
                     throw new ShiftMateException("店舗の店長の承認が必要です。");
@@ -89,22 +86,32 @@ public class ShiftRequestService {
             if (!shiftRequestOptional.isPresent()) {
                 throw new ShiftMateException("申し込んだシフトが見つかりません。");
             }
-            ShiftRequestEntity shiftRequest = shiftRequestOptional.get();
+            ShiftRequestEntity request = shiftRequestOptional.get();
             Optional<ShiftEntity> shiftOptional = shiftRepository.findById(newShiftNumber);
             if (!shiftOptional.isPresent()) {
                 throw new ShiftMateException("新しいシフトが見つかりません。");
             }
-            UserEntity user = shiftRequest.getUser();
+            UserEntity user = request.getUser();
             if (!user.getUserNumber().equals(userNumber)) {
                 throw new ShiftMateException("ご自身のシフトのみ修正可能です。");
             }
             if (!"従業員".equals(user.getUserType())) {
                 throw new ShiftMateException("従業員専用の機能です。");
             }
-            if ("承認".equals(shiftRequest.getStatus())) {
+            if ("承認".equals(request.getStatus())) {
                 throw new ShiftMateException("承認済みのシフトは変更できません。店長に相談してください。");
             }
             ShiftEntity newShift = shiftOptional.get();
+
+            Optional<StoreEmployeeEntity> storeEmployeeOptional = storeEmployeeRepository.findByStore_StoreNumberAndUser_UserNumber(newShift.getStore().getStoreNumber(), userNumber);
+            if (!storeEmployeeOptional.isPresent()) {
+                throw new ShiftMateException("該当店舗のスタッフのみシフト修正が可能です。");
+            }
+            StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフトの修正ができません。");
+            }
+
             if (newShift.getCurrentEmployees() >= newShift.getMaxEmployees()) {
                 throw new ShiftMateException("定員が締め切られました。他の時間帯を選んでください。");
             }
@@ -114,9 +121,9 @@ public class ShiftRequestService {
             Optional<ShiftRequestEntity> oldRequestOptional =
                     shiftRequestRepository.findByRequestNumberAndUser_UserNumber(requestNumber, userNumber);
 
-            shiftRequest.setShift(newShift);
-            shiftRequest.setStatus("待機中");
-            ShiftRequestEntity savedRequest = shiftRequestRepository.save(shiftRequest);
+            request.setShift(newShift);
+            request.setStatus("待機中");
+            ShiftRequestEntity savedRequest = shiftRequestRepository.save(request);
             return convertToDTO(savedRequest);
             } catch (ShiftMateException e) {
                 System.out.println("X ShiftMateException: " + e.getMessage());
@@ -137,6 +144,17 @@ public class ShiftRequestService {
             ShiftRequestEntity request = shiftRequestOptional.get();
             if (!request.getUser().getUserNumber().equals(userNumber)) {
                 throw new ShiftMateException("ご自身のシフトのみ削除可能です。");
+            }
+            ShiftEntity shift = request.getShift();
+            Optional<StoreEmployeeEntity> storeEmployeeOptional = storeEmployeeRepository.findByStore_StoreNumberAndUser_UserNumber(shift.getStore().getStoreNumber(), userNumber);
+
+            if (!storeEmployeeOptional.isPresent()) {
+                throw new ShiftMateException("該当店舗のスタッフのみ処理が可能です。");
+            }
+            StoreEmployeeEntity storeEmployee = storeEmployeeOptional.get();
+
+            if (Boolean.TRUE.equals(storeEmployee.getIsRetired())) {
+                throw new ShiftMateException("退職したスタッフはシフトの削除ができません。");
             }
             if ("承認".equals(request.getStatus())) {
                 throw new ShiftMateException("承認済みのシフトは削除できません。店長に相談してください。");
@@ -219,6 +237,11 @@ public class ShiftRequestService {
 
     public List<ShiftRequestDTO> getUserRequests(Long userNumber){
         try{List<ShiftRequestEntity> requests=shiftRequestRepository.findByUser_UserNumber(userNumber);
+            return requests.stream().map(this::convertToDTO).collect(Collectors.toList());}
+        catch (Exception e){e.printStackTrace(); throw new ShiftMateException("申し込みリストの照会中エラー発生", e);}}
+
+    public List<ShiftRequestDTO> getStoreRequests(Long storeNumber){
+        try{List<ShiftRequestEntity> requests=shiftRequestRepository.findByShift_Store_StoreNumber(storeNumber);
             return requests.stream().map(this::convertToDTO).collect(Collectors.toList());}
         catch (Exception e){e.printStackTrace(); throw new ShiftMateException("申し込みリストの照会中エラー発生", e);}}
 
