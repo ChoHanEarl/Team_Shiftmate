@@ -9,7 +9,8 @@
         "react-dom": "^18.2.0",
         "react-router-dom": "^7.13.0",
         "react-scripts": "5.0.1",
-        "styled-components": "^6.3.8"
+        "styled-components": "^6.3.8",
+        "zustand": "^5.0.11"
     },
     "scripts": {
         "start": "set PORT=3030 && react-scripts start",
