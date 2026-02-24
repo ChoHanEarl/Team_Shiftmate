@@ -1,4 +1,3 @@
-
 package com.example.shiftmate.controller;
 
 import com.example.shiftmate.dto.LoginDTO;
@@ -55,6 +54,46 @@ public class UserController {
         response.put("user", loginResult.get("user"));
         return ResponseEntity.ok(response);
     }
+
+    // 특정 회원 조회 API
+    @GetMapping("/{userNumber}")
+    public ResponseEntity<Map<String, Object>> getUserInfo(@PathVariable Long userNumber) {
+        UserDTO user = userService.getUserInfo(userNumber);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("user", user);
+        return ResponseEntity.ok(response);
+    }
+
+    // 회원 정보 수정 API
+    @PutMapping("/{userNumber}")
+    public ResponseEntity<Map<String, Object>> updateUser(
+            @PathVariable Long userNumber,
+            @RequestBody UserDTO userDTO
+    ) {
+        UserDTO updatedUser = userService.updateUser(userNumber, userDTO);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "会員情報の修正が完了しました。");
+        response.put("user", updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    // 회원 탈퇴 API
+    @DeleteMapping("/{userNumber}")
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long userNumber) {
+        userService.deleteUser(userNumber);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "退会処理が完了しました。");
+        return ResponseEntity.ok(response);
+    }
+
+
+
     //유저 타입별 조회
     // 테스트 주소 http://localhost:8080/api/users/type?type=店長
     @GetMapping("/type")

@@ -115,6 +115,44 @@ public class UserService {
                 .build();
     }
 
+    // 특정 회원 상세 조회
+    public UserDTO getUserInfo(Long userNumber) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        return convertToDTO(user);
+    }
+
+    // 회원 정보 수정
+    @Transactional// 엔티티 수정시 db에 자동 반영 되도록 필수 추가.
+    public UserDTO updateUser(Long userNumber, UserDTO userDTO) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+        // 이름 수정
+        user.setName(userDTO.getName());
+
+        // 비밀번호가 넘어온 경우에만 유효성 검사 후 암호화하여 수정
+        if (userDTO.getPassword() != null && !userDTO.getPassword().trim().isEmpty()) {
+            if (!passwordUtil.validatePassword(userDTO.getPassword())){
+                throw new ShiftMateException("パスワードは８文字以上で、英字数字を含める必要があります。");
+            }
+            String hashedPassword = passwordUtil.hashPassword(userDTO.getPassword());
+            user.setPassword(hashedPassword);
+        }
+
+        return convertToDTO(user);
+    }
+
+    // 회원 탈퇴/삭제
+    @Transactional
+    public void deleteUser(Long userNumber) {
+        if (!userRepository.existsById(userNumber)) {
+            throw new ShiftMateException("ユーザーが見つかりません。");
+        }
+
+        userRepository.deleteById(userNumber);
+    }
+
     // 타입별 회원 조회
     public List<UserDTO> getUsersType(String type) {
         List<UserEntity> users = userRepository.findByUserType(type);
