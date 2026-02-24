@@ -1,3 +1,9 @@
+const breakpoints = {
+  sm: '480px',
+  md: '768px',
+  lg: '1024px',
+}
+
 export const theme = {
     colors: {
         primary: '#4F46E5',
@@ -23,4 +29,11 @@ export const theme = {
         lg: '14px',
     },
     shadow: '0 1px 6px rgba(0, 0, 0, 0.08)',
+    breakpoints,
+}
+
+export const media = {
+  sm: `@media (max-width: ${theme.breakpoints.sm})`,
+  md: `@media (max-width: ${theme.breakpoints.md})`,
+  lg: `@media (max-width: ${theme.breakpoints.lg})`,
 }

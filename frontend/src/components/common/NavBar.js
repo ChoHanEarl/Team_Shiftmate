@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from "../../store/authStore";
-import { Nav, Logo, Right, UserInfo, Badge, NavLink, LogoutBtn } from '../../styles/NavBarStyle';
+import { Nav, Logo, Right, UserInfo, Badge, NavLink, LogoutBtn } from '../../styles/NavBar.styles';
 
 
 export default function Navbar() {
