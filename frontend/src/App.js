@@ -1,12 +1,21 @@
-import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
+import GlobalStyle from './styles/GlobalStyle';
+import { theme } from './styles/theme';
+import PrivateRoute from './components/common/PrivateRoute';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
-function App() {
+export default function App() {
     return (
-        <div style={{ textAlign: 'center', marginTop: '100px' }}>
-            <h1>ShiftMate</h1>
-            <p>React 연결됨</p>
-        </div>
+        <ThemeProvider theme={theme}>
+            <GlobalStyle />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                </Routes>
+            </BrowserRouter>
+        </ThemeProvider>
     );
 }
-
-export default App;
