@@ -1,0 +1,26 @@
+export const theme = {
+    colors: {
+        primary: '#4F46E5',
+        primaryDark: '#4338CA',
+        primaryLight: '#EEF2FF',
+        success: '#16A34A',
+        successLight: '#DCFCE7',
+        warning: '#D97706',
+        warningLight: '#FEF3C7',
+        danger: '#DC2626',
+        dangerLight: '#FEE2E2',
+        gray100: '#F3F4F6',
+        gray200: '#E5E7EB',
+        gray400: '#9CA3AF',
+        gray500: '#6B7280',
+        gray700: '#374151',
+        gray800: '#1F2937',
+        white: '#FFFFFF',
+    },
+    radius: {
+        sm: '6px',
+        md: '10px',
+        lg: '14px',
+    },
+    shadow: '0 1px 6px rgba(0, 0, 0, 0.08)',
+}
