@@ -7,9 +7,9 @@ import com.example.shiftmate.exception.ShiftMateException;
 import com.example.shiftmate.repository.UserRepository;
 import com.example.shiftmate.util.JwtUtil;
 import com.example.shiftmate.util.PasswordUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -121,13 +121,6 @@ public class UserService {
                 .build();
     }
 
-    // 특정 회원 상세 조회
-    public UserDTO getUserInfo(Long userNumber) {
-        UserEntity user = userRepository.findById(userNumber)
-                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
-
-        return convertToDTO(user);
-    }
 
     // 1. 이름 단일 수정
     @Transactional
@@ -206,7 +199,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    // 회원검색
+    // 회원 이름 검색
     public List<UserDTO> searchUsers(String keyword) {
         List<UserEntity> users = userRepository.findByNameContaining(keyword);
 
@@ -221,5 +214,25 @@ public class UserService {
         return users.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // 특정 회원 상세 조회
+    @Transactional(readOnly = true)
+    public UserDTO getUserByNumber(Long userNumber, String currentUserId) {
+
+        UserEntity targetUser = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        UserEntity currentUser = userRepository.findByUserId(currentUserId)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        boolean isManager = "店長".equals(currentUser.getUserType()); // 점장인가?
+        boolean isSelf = targetUser.getUserId().equals(currentUserId); // 본인인가?
+
+        if (!isManager && !isSelf) {
+            throw new ShiftMateException("本人の情報または店長のみ照会可能です。");
+        }
+
+        return convertToDTO(targetUser);
     }
 }

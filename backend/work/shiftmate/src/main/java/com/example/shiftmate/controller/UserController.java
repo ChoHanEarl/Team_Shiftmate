@@ -56,17 +56,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // 특정 회원 조회 API
-    @GetMapping("/{userNumber}")
-    public ResponseEntity<Map<String, Object>> getUserInfo(@PathVariable Long userNumber) {
-        UserDTO user = userService.getUserInfo(userNumber);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("user", user);
-        return ResponseEntity.ok(response);
-    }
-
     // 1. 이름 단일 수정 API
     @PatchMapping("/{userNumber}/name")
     public ResponseEntity<Map<String, Object>> updateName(
@@ -140,8 +129,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
-
     //유저 타입별 조회
     // 테스트 주소 http://localhost:8080/api/users/type?type=店長
     @GetMapping("/type")
@@ -161,4 +148,18 @@ public class UserController {
         return ResponseEntity.ok(userService.searchUsersById(keyword));
     }
 
+    // 특정 유저 상세 정보 조회 API
+    @GetMapping("/{userNumber}")
+    public ResponseEntity<Map<String, Object>> getUserInfo(
+            @PathVariable Long userNumber,
+            @RequestAttribute("userId") String currentUserId
+    ) {
+        UserDTO userInfo = userService.getUserByNumber(userNumber, currentUserId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("user", userInfo);
+
+        return ResponseEntity.ok(response);
+    }
 }
