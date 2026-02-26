@@ -3,6 +3,7 @@ package com.example.shiftmate.controller;
 import com.example.shiftmate.dto.LoginDTO;
 import com.example.shiftmate.dto.UserDTO;
 import com.example.shiftmate.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-
+    private final com.example.shiftmate.util.JwtUtil jwtUtil;
     // ユーザーID重複確認
     @GetMapping("/check-duplicate")
     public ResponseEntity<Map<String, Object>> checkDuplicate(@RequestParam String userId ) {
@@ -66,18 +67,65 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // 회원 정보 수정 API
-    @PutMapping("/{userNumber}")
-    public ResponseEntity<Map<String, Object>> updateUser(
+    // 1. 이름 단일 수정 API
+    @PatchMapping("/{userNumber}/name")
+    public ResponseEntity<Map<String, Object>> updateName(
             @PathVariable Long userNumber,
-            @RequestBody UserDTO userDTO
-    ) {
-        UserDTO updatedUser = userService.updateUser(userNumber, userDTO);
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpServletRequest) {
+
+        // 1. 헤더에서 토큰 추출 (Bearer 제외)
+        String authHeader = httpServletRequest.getHeader("Authorization");
+        String token = authHeader.substring(7);
+
+        // 2. JwtUtil을 사용해 토큰에서 아이디 추출
+        String currentUserId = jwtUtil.getUserIdFromToken(token);
+
+        UserDTO updatedUser = userService.updateName(userNumber, request.get("name"), currentUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
-        response.put("message", "会員情報の修正が完了しました。");
         response.put("user", updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    // 2. 전화번호 단일 수정 API
+    @PatchMapping("/{userNumber}/phone")
+    public ResponseEntity<Map<String, Object>> updatePhoneNumber(
+            @PathVariable Long userNumber,
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpServletRequest) {
+
+        // 헤더에서 토큰 추출 및 아이디 가져오기
+        String authHeader = httpServletRequest.getHeader("Authorization");
+        String token = authHeader.substring(7);
+        String currentUserId = jwtUtil.getUserIdFromToken(token); // 본인의 JwtUtil 메서드명 확인!
+
+        UserDTO updatedUser = userService.updatePhoneNumber(userNumber, request.get("phoneNumber"), currentUserId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "電話番号の修正が完了しました。");
+        response.put("user", updatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    // 3. 비밀번호 수정 API
+    @PatchMapping("/{userNumber}/password")
+    public ResponseEntity<Map<String, Object>> updatePassword(
+            @PathVariable Long userNumber,
+            @Valid @RequestBody com.example.shiftmate.dto.ChangePasswordDTO passwordDTO,
+            HttpServletRequest httpServletRequest) {
+
+        String authHeader = httpServletRequest.getHeader("Authorization");
+        String token = authHeader.substring(7);
+        String currentUserId = jwtUtil.getUserIdFromToken(token);
+
+        userService.updatePassword(userNumber, passwordDTO, currentUserId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "パスワードの変更が完了しました。");
         return ResponseEntity.ok(response);
     }
 
