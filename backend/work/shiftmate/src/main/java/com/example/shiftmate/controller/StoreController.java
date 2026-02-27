@@ -107,19 +107,29 @@ public class StoreController {
         return ResponseEntity.ok(response);
     }
 
-    //　店舗削除
+    // 店舗削除
     @DeleteMapping("/{storeNumber}")
-    public ResponseEntity<Map<String, Object>> deleteStroe(
+    public ResponseEntity<Map<String, Object>> deleteStore(
             @PathVariable Long storeNumber,
-            HttpServletRequest request){
+            HttpServletRequest request) {
 
         Map<String, Object> response = new HashMap<>();
-        Long ownerUserNumber = (Long) request.getAttribute("userNumber");
+        try {
+            Long ownerUserNumber = (Long) request.getAttribute("userNumber");
 
-        storeService.deleteStore(storeNumber, ownerUserNumber);
+            storeService.deleteStore(storeNumber, ownerUserNumber);
 
-        response.put("success", true);
-        response.put("message", "店舗が削除されました。");
-        return ResponseEntity.ok(response);
+            response.put("success", true);
+            response.put("message", "店舗が正常に削除されました。");
+            return ResponseEntity.ok(response);
+        } catch (com.example.shiftmate.exception.ShiftMateException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "削除中に予期せぬエラーが発生しました。");
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }

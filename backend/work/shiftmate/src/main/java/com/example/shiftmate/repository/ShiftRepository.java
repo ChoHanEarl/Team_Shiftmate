@@ -1,6 +1,7 @@
 package com.example.shiftmate.repository;
 
 import com.example.shiftmate.entity.ShiftEntity;
+import com.example.shiftmate.entity.StoreEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,5 @@ public interface ShiftRepository extends JpaRepository<ShiftEntity, Long> {
     List<ShiftEntity> findByStore_StoreNumber(Long storeNumber);
     List<ShiftEntity> findByStore_StoreNumberAndShiftDate(Long storeNumber, LocalDate shiftDate);
     List<ShiftEntity> findByStore_StoreNumberAndShiftDateBetween(Long storeNumber, LocalDate startDate, LocalDate endDate);
+    void deleteByStore(StoreEntity store);
 }

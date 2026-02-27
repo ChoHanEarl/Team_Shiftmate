@@ -81,7 +81,7 @@ public class ShiftController {
 
     // シフト番号から照会
     @GetMapping("/{shiftNumber}")
-    public ResponseEntity<Map<String, Object>> getShift(@PathVariable Long shiftNumber) {
+    public ResponseEntity<Map<String, Object>> getShiftByNumber(@PathVariable Long shiftNumber) {
         Map<String, Object> response = new HashMap<>();
         ShiftDTO shift = shiftService.getShiftByNumber(shiftNumber);
         response.put("success", true);
