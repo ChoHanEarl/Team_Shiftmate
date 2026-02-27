@@ -1,6 +1,7 @@
 package com.example.shiftmate.repository;
 
 import com.example.shiftmate.entity.ShiftRequestEntity;
+import com.example.shiftmate.entity.StoreEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,5 +16,5 @@ public interface ShiftRequestRepository extends JpaRepository<ShiftRequestEntity
     Optional<ShiftRequestEntity> findByShift_ShiftNumberAndUser_UserNumber(Long shiftNumber, Long userNumber);
     Optional<ShiftRequestEntity> findByRequestNumberAndUser_UserNumber(Long requestNumber, Long userNumber);
     boolean existsByShift_ShiftNumberAndUser_UserNumber(Long shiftNumber, Long userNumber);
-
+    void deleteByShift_Store(StoreEntity store);
 }
