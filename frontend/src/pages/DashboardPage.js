@@ -120,7 +120,7 @@ const DashboardPage = () => {
                                     <button className="main-btn" onClick={() => navigate(`/shifts/${store.storeNumber}`)}>
                                         シフト管理
                                     </button>
-                                    <button className="staff-btn" onClick={() => navigate(`/admin/${store.storeNumber}`)}>
+                                    <button className="staff-btn" onClick={() => navigate(`/admin/`)}>
                                         店員・申請管理
                                     </button>
                                     <button className="outline-btn" onClick={() => navigate(`/edit-store/${store.storeNumber}`)}>

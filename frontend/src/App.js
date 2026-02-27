@@ -10,6 +10,8 @@ import DashboardPage from './pages/DashboardPage';
 import ShiftPage from './pages/ShiftPage';
 import RegisterStorePage from './pages/RegisterStorePage';
 import EditStorePage from './pages/EditStorePage';
+import AdminPage from './pages/AdminPage';
+import MyPage from './pages/MyPage';
 
 export default function App() {
     return (
@@ -36,6 +38,12 @@ export default function App() {
                     </PrivateRoute>
                 } />
 
+                <Route path="/mypage" element={
+                        <PrivateRoute allowedRole="従業員">
+                            <MyPage />
+                        </PrivateRoute>
+                    } />
+
                 <Route path="/register-store" element={
                     <PrivateRoute allowedRole="店長">
                         <RegisterStorePage />
@@ -46,6 +54,12 @@ export default function App() {
                         <EditStorePage />
                     </PrivateRoute>
                 } />
+                <Route path="/admin" element={
+                        <PrivateRoute allowedRole="店長">
+                            <AdminPage />
+                        </PrivateRoute>
+                    } />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthStore from '../store/authStore';
 import { shiftApi } from '../api/shiftApi';
-import { shiftRequestApi } from '../api/shiftRequestApi';
+import * as shiftRequestApi from '../api/shiftRequestApi';
 
 // 日本語カレンダー設定
 import DatePicker, { registerLocale } from "react-datepicker";
@@ -47,7 +47,7 @@ const ShiftPage = () => {
 
             const reqRes = isOwner
                 ? await shiftRequestApi.getStoreRequests(storeNumber)
-                : await shiftRequestApi.getUserRequests();
+                : await shiftRequestApi.getMyRequests();
             
             if (reqRes.data.success) {
                 setRequests(reqRes.data.request || reqRes.data.requests || []);
