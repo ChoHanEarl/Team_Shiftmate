@@ -40,7 +40,6 @@ public class UserEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 유저 정보 추가
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
