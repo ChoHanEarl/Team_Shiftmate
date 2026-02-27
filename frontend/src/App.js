@@ -6,6 +6,10 @@ import PrivateRoute from './components/common/PrivateRoute';
 import FirstPage from './pages/FirstPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+import ShiftPage from './pages/ShiftPage';
+import RegisterStorePage from './pages/RegisterStorePage';
+import EditStorePage from './pages/EditStorePage';
 
 export default function App() {
     return (
@@ -21,7 +25,27 @@ export default function App() {
                     <Route path="/register" element={<RegisterPage />} />
 
                     {/* 認証が要る Route (PrivateRoute) */}
+                    <Route path="/dashboard" element={
+                    <PrivateRoute>
+                        <DashboardPage />
+                    </PrivateRoute>
+                } />
+                <Route path="/shifts/:storeNumber" element={
+                    <PrivateRoute>
+                        <ShiftPage />
+                    </PrivateRoute>
+                } />
 
+                <Route path="/register-store" element={
+                    <PrivateRoute allowedRole="店長">
+                        <RegisterStorePage />
+                    </PrivateRoute>
+                } />
+                <Route path="/edit-store/:storeNumber" element={
+                    <PrivateRoute allowedRole="店長">
+                        <EditStorePage />
+                    </PrivateRoute>
+                } />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

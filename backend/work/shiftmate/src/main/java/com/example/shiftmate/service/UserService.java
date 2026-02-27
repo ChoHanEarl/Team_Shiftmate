@@ -55,6 +55,9 @@ public class UserService {
                     .password(hashedPassword)
                     .name(userDTO.getName())
                     .userType(userDTO.getUserType())
+                    .phoneNumber(userDTO.getPhoneNumber()) // 추가됨
+                    .email(userDTO.getEmail())             // 추가됨
+                    .birthDate(userDTO.getBirthDate())       // 추가됨
                     .build();
 
             UserEntity savedUser = userRepository.save(userEntity);
@@ -112,7 +115,86 @@ public class UserService {
                 .userId(entity.getUserId())
                 .name(entity.getName())
                 .userType(entity.getUserType())
+                .phoneNumber(entity.getPhoneNumber()) // 추가됨
+                .email(entity.getEmail())             // 추가됨
+                .birthDate(entity.getBirthDate())       // 추가됨
                 .build();
+    }
+
+    // 특정 회원 상세 조회
+    public UserDTO getUserInfo(Long userNumber) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        return convertToDTO(user);
+    }
+
+    // 1. 이름 단일 수정
+    @Transactional
+    public UserDTO updateName(Long userNumber, String newName, String currentUserId) {
+
+        // 공백방지
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new ShiftMateException("名前は空欄にできません。");
+        }
+
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 본인확인
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人の情報のみ修正できます。");
+        }
+
+        user.setName(newName);
+        return convertToDTO(user);
+    }
+
+    // 2. 전화번호 수정
+    @Transactional
+    public UserDTO updatePhoneNumber(Long userNumber, String newPhoneNumber, String currentUserId) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 본인 확인
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人の情報のみ修正できます。");
+        }
+
+        user.setPhoneNumber(newPhoneNumber);
+        return convertToDTO(user);
+    }
+
+    // 3. 비밀번호 수정
+    @Transactional
+    public void updatePassword(Long userNumber, com.example.shiftmate.dto.ChangePasswordDTO passwordDTO, String currentUserId) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 본인 확인
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人のパスワードのみ変更できます。");
+        }
+
+        // 현재 비밀번호가 맞는지 검증
+        String hashedInputPassword = passwordUtil.hashPassword(passwordDTO.getCurrentPassword());
+
+        if (!hashedInputPassword.equals(user.getPassword())) {
+            throw new ShiftMateException("現在のパスワードが一致しません。");
+        }
+
+        // 새 비밀번호 암호화 후 저장
+        user.setPassword(passwordUtil.hashPassword(passwordDTO.getNewPassword()));
+    }
+
+    // 회원 탈퇴/삭제
+    @Transactional
+    public void deleteUser(Long userNumber) {
+        if (!userRepository.existsById(userNumber)) {
+            throw new ShiftMateException("ユーザーが見つかりません。");
+        }
+
+        userRepository.deleteById(userNumber);
     }
 
     // 타입별 회원 조회
