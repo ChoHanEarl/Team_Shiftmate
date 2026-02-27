@@ -1,6 +1,7 @@
 package com.example.shiftmate.repository;
 
 import com.example.shiftmate.entity.StoreEmployeeEntity;
+import com.example.shiftmate.entity.StoreEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,5 +16,5 @@ public interface StoreEmployeeRepository extends JpaRepository<StoreEmployeeEnti
     Optional<StoreEmployeeEntity> findByStore_StoreNumberAndUser_UserNumber(Long storeNumber, Long userNumber);
     boolean existsByStore_StoreNumberAndUser_UserNumber(Long storeNumber, Long userNumber);
     List<StoreEmployeeEntity> findByStore_StoreNumberAndStatus(Long storeNumber, String status);
-
+    void deleteByStore(StoreEntity store);
 }
