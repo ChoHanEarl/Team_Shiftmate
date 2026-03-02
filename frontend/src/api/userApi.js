@@ -17,3 +17,6 @@ export const searchUsers = (keyword) =>
 
 export const searchUsersById = (keyword) =>
     axiosInstance.get('/api/users/search/id', { params: { keyword } })
+
+export const getUserInfo = (userNumber) =>
+    axiosInstance.get(`/api/users/${userNumber}`)
