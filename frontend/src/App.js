@@ -12,54 +12,48 @@ import RegisterStorePage from './pages/RegisterStorePage';
 import EditStorePage from './pages/EditStorePage';
 import AdminPage from './pages/AdminPage';
 import MyPage from './pages/MyPage';
+import ProfileChangePage from './pages/ProfileChangePage';
+import useThemeStore from './store/themeStore';
+import { lightTheme, darkTheme } from './styles/theme';
 
 export default function App() {
+    const { isDark } = useThemeStore();
+    const currentTheme = isDark ? darkTheme : lightTheme;
     return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={currentTheme}>
             <GlobalStyle />
             <BrowserRouter>
                 <Routes>
-                    {/* Landing Page */} 
+                    {/* Landing */}
                     <Route path="/" element={<FirstPage />} />
 
-                    {/* 公開 Route */}
+                    {/* 公開 */}
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
-                    {/* 認証が要る Route (PrivateRoute) */}
+                    {/* 認証必須 (PrivateRoute に NavBar 内蔵) */}
                     <Route path="/dashboard" element={
-                    <PrivateRoute>
-                        <DashboardPage />
-                    </PrivateRoute>
-                } />
-                <Route path="/shifts/:storeNumber" element={
-                    <PrivateRoute>
-                        <ShiftPage />
-                    </PrivateRoute>
-                } />
-
-                <Route path="/mypage" element={
-                        <PrivateRoute allowedRole="従業員">
-                            <MyPage />
-                        </PrivateRoute>
+                        <PrivateRoute><DashboardPage /></PrivateRoute>
                     } />
-
-                <Route path="/register-store" element={
-                    <PrivateRoute allowedRole="店長">
-                        <RegisterStorePage />
-                    </PrivateRoute>
-                } />
-                <Route path="/edit-store/:storeNumber" element={
-                    <PrivateRoute allowedRole="店長">
-                        <EditStorePage />
-                    </PrivateRoute>
-                } />
-                <Route path="/admin" element={
-                        <PrivateRoute allowedRole="店長">
-                            <AdminPage />
-                        </PrivateRoute>
+                    <Route path="/shifts/:storeNumber" element={
+                        <PrivateRoute><ShiftPage /></PrivateRoute>
                     } />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/mypage" element={
+                        <PrivateRoute allowedRole="従業員"><MyPage /></PrivateRoute>
+                    } />
+                    <Route path="/register-store" element={
+                        <PrivateRoute allowedRole="店長"><RegisterStorePage /></PrivateRoute>
+                    } />
+                    <Route path="/edit-store/:storeNumber" element={
+                        <PrivateRoute allowedRole="店長"><EditStorePage /></PrivateRoute>
+                    } />
+                    <Route path="/admin" element={
+                        <PrivateRoute allowedRole="店長"><AdminPage /></PrivateRoute>
+                    } />
+                    <Route path="/profile" element={
+                        <PrivateRoute><ProfileChangePage /></PrivateRoute>
+                    } />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
             </BrowserRouter>
         </ThemeProvider>

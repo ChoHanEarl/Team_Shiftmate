@@ -21,6 +21,7 @@ public class ShiftRequestService {
     private final ShiftRepository shiftRepository;
     private final UserRepository userRepository;
     private final StoreEmployeeRepository storeEmployeeRepository;
+    private final NotificationService notificationService;
 
     public ShiftRequestDTO applyShift(Long shiftNumber, Long userNumber) {
         try {
@@ -69,6 +70,16 @@ public class ShiftRequestService {
                     .status("待機中")
                     .build();
             ShiftRequestEntity savedRequest = shiftRequestRepository.save(requestEntity);
+
+            Long ownerNumber = shift.getStore().getOwner().getUserNumber();
+            notificationService.createNotification(
+                    ownerNumber,
+                    user.getName() + "さんが" + shift.getShiftDate() + "のシフト（"
+                    + shift.getStartTime() + "時~" + shift.getEndTime() + "時）を申請しました。",
+                    "SHIFT_REQUEST",
+                    savedRequest.getRequestNumber()
+            );
+
             return convertToDTO(savedRequest);
             } catch (ShiftMateException e) {
             System.out.println("X ShiftMateException: " + e.getMessage());
@@ -124,7 +135,17 @@ public class ShiftRequestService {
             request.setShift(newShift);
             request.setStatus("待機中");
             ShiftRequestEntity savedRequest = shiftRequestRepository.save(request);
+
+            Long ownerNumber = newShift.getStore().getOwner().getUserNumber();
+            notificationService.createNotification(
+                    ownerNumber,
+                    user.getName() + "さんが" + newShift.getShiftDate() + "のシフト（"
+                            + newShift.getStartTime() + "時〜" + newShift.getEndTime() + "時）へ変更申請しました。",
+                    "SHIFT_REQUEST",
+                    savedRequest.getRequestNumber()
+            );
             return convertToDTO(savedRequest);
+
             } catch (ShiftMateException e) {
                 System.out.println("X ShiftMateException: " + e.getMessage());
                 throw e;
@@ -193,6 +214,15 @@ public class ShiftRequestService {
                     shiftRepository.save(shift);
                 }
             }
+
+            ShiftEntity shift = request.getShift();
+            notificationService.createNotification(
+                    request.getUser().getUserNumber(),
+                    shift.getShiftDate() + "（" + shift.getStartTime() + "時〜" + shift.getEndTime()
+                    + "時）のシフトが管理者により削除されました。",
+                    "SHIFT_EMERGENCY",
+                    requestNumber
+            );
             shiftRequestRepository.delete(request);
             } catch (ShiftMateException e) {
                 System.out.println("X ShiftMateException: " + e.getMessage());
@@ -230,6 +260,17 @@ public class ShiftRequestService {
             request.setStatus(status);
             request.setProcessedAt(LocalDateTime.now());
             ShiftRequestEntity updatedRequest=shiftRequestRepository.save(request);
+
+            String shiftInfo = shift.getShiftDate() + "（" + shift.getStartTime() + "時〜" + shift.getEndTime() + "時）";
+            String resultMsg = "承認".equals(status)
+                    ? shiftInfo + "のシフト申請が承認されました。🎉"
+                    : shiftInfo + "のシフト申請が断られました。";
+            notificationService.createNotification(
+                    request.getUser().getUserNumber(),
+                    resultMsg,
+                    "SHIFT_RESULT",
+                    updatedRequest.getRequestNumber()
+            );
             return convertToDTO(updatedRequest);}
         catch (ShiftMateException e) {throw e;}
         catch (Exception e) {e.printStackTrace(); throw new ShiftMateException("申し込み処理中エラー発生。");}

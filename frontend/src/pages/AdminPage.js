@@ -4,21 +4,23 @@ import * as employeeApi from '../api/storeEmployeeApi';
 import * as shiftApi from '../api/shiftRequestApi';
 import * as userApi from '../api/userApi';
 import { storeApi } from '../api/storeApi';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { shiftApi as shiftInfoApi } from '../api/shiftApi';
 
 import {
-    Container, Header, PageTitle, StoreInfo,
-    TabContainer, TabButton, ContentCard, SectionTitle, DashboardButton,
-    List, ListItem, ItemInfo, ButtonGroup, ActionButton, StoreSelect, SaveButtonWrapper,
-    TableContainer, Table, Th, Td, StatusBadge, NameGroup, StoreInfoWrapper, 
-    InputGroup, Label, Input, SearchBox, Hr, EmptyMsg, CheckboxWrapper
+    Container, Header, PageTitle, StoreInfo, StoreSelect, DashboardButton,
+    TabContainer, TabButton, ContentCard, SectionTitle,
+    List, ListItem, ItemInfo, ButtonGroup, ActionButton, NameGroup,
+    TableContainer, Table, Th, Td, StatusBadge,
+    StoreInfoWrapper, InputGroup, Label, Input, SearchBox,
+    Hr, EmptyMsg, CheckboxWrapper, SaveButtonWrapper
 } from '../styles/AdminPage.styles';
 
 const AdminPage = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState('employee');
-
     const [storeNumber, setStoreNumber] = useState(null);
     const [myStores, setMyStores] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -28,38 +30,57 @@ const AdminPage = () => {
             if (!user) return;
             try {
                 const res = await storeApi.getOwnerStores();
-                const relations = res.data.stores;
-
-                if (relations && relations.length > 0) {
-                    setMyStores(relations);
-                    setStoreNumber(relations[0].storeNumber);
-                    console.log("店舗情報の読み込みに成功しました。", relations[0]);
+                const stores = res.data.stores;
+                if (stores && stores.length > 0) {
+                    setMyStores(stores);
+                    const paramNum = searchParams.get('storeNumber');
+                    const initNum = paramNum ? Number(paramNum) : stores[0].storeNumber;
+                    setStoreNumber(initNum);
                 } else {
-                    alert("管理する店舗が見つかりません。");
+                    setMyStores([]);
                 }
             } catch (err) {
-                console.error("店舗情報の読み込みに失敗しました:", err);
+                console.error('店舗情報の読み込みに失敗しました:', err);
             } finally {
                 setIsLoading(false);
             }
         };
-
         fetchMyStore();
     }, [user]);
 
     if (!user) return <Container>ログインが必要です。</Container>;
     if (isLoading) return <Container>店舗情報を読み込み中...</Container>;
-    if (!storeNumber) return <Container>店舗情報がありません。</Container>;
+    if (myStores.length === 0) return (
+        <Container>
+            <Header>
+                <div>
+                    <PageTitle>管理者ページ</PageTitle>
+                </div>
+                <DashboardButton onClick={() => navigate('/dashboard')}>
+                    🏠 ダッシュボード
+                </DashboardButton>
+            </Header>
+            <ContentCard style={{ textAlign: 'center' , padding: '60px 20px' }}>
+                <p style={{ fontSize: 16, marginBottom: 20 }}>
+                    管理している店舗がありません。
+                </p>
+                <DashboardButton onClick={() => navigate('/register-store')}>
+                    ＋ 新規店舗登録
+                </DashboardButton>
+            </ContentCard>
+        </Container>
+    )
 
     return (
         <Container>
             <Header>
                 <div>
                     <PageTitle>管理者ページ</PageTitle>
-                    <StoreInfo>店長: {user.name}様 
+                    <StoreInfo>
+                        店長: {user.name} 様
                         {myStores.length > 1 && (
-                            <StoreSelect 
-                                value={storeNumber} 
+                            <StoreSelect
+                                value={storeNumber}
                                 onChange={(e) => setStoreNumber(Number(e.target.value))}
                             >
                                 {myStores.map(store => (
@@ -72,24 +93,30 @@ const AdminPage = () => {
                         {myStores.length === 1 && ` (店舗番号: ${storeNumber})`}
                     </StoreInfo>
                 </div>
-                <DashboardButton onClick={() => navigate('/dashboard')}>
-                    🏠 ダッシュボード
-                </DashboardButton>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <DashboardButton
+                        style={{ background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB' }}
+                        onClick={() => navigate('/profile')}
+                    >
+                        ⚙️ プロフィール設定
+                    </DashboardButton>
+                    <DashboardButton onClick={() => navigate('/dashboard')}>
+                        🏠 ダッシュボード
+                    </DashboardButton>
+                </div>
             </Header>
 
             <TabContainer>
-                <TabButton $active={activeTab === 'employee'} onClick={() => setActiveTab('employee')}>
-                    スタッフ管理
-                </TabButton>
-                <TabButton $active={activeTab === 'shift'} onClick={() => setActiveTab('shift')}>
-                    シフト管理
-                </TabButton>
-                <TabButton $active={activeTab === 'store'} onClick={() => setActiveTab('store')}>
-                    店舗情報修正
-                </TabButton>
-                <TabButton $active={activeTab === 'search'} onClick={() => setActiveTab('search')}>
-                    ユーザー検索
-                </TabButton>
+                {[
+                    { key: 'employee', label: 'スタッフ管理' },
+                    { key: 'shift', label: 'シフト管理' },
+                    { key: 'store', label: '店舗情報修正' },
+                    { key: 'search', label: 'ユーザー検索' },
+                ].map(t => (
+                    <TabButton key={t.key} $active={activeTab === t.key} onClick={() => setActiveTab(t.key)}>
+                        {t.label}
+                    </TabButton>
+                ))}
             </TabContainer>
 
             <ContentCard>
@@ -102,18 +129,20 @@ const AdminPage = () => {
     );
 };
 
+/* ─── スタッフ管理タブ ─── */
 const EmployeeTab = ({ storeNumber, ownerId }) => {
     const [employees, setEmployees] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
-   
+
     const loadData = useCallback(async () => {
         try {
             const [empRes, pendingRes] = await Promise.all([
                 employeeApi.getStoreEmployees(storeNumber),
                 employeeApi.getPendingRequests(storeNumber)
             ]);
-            const attachNames = async (list = []) => {
-                return Promise.all(list.map(async (item) => {
+
+            const attachNames = async (list = []) =>
+                Promise.all(list.map(async (item) => {
                     try {
                         const res = await userApi.getUserInfo(item.userNumber);
                         return { ...item, userName: res.data.user.name };
@@ -121,61 +150,59 @@ const EmployeeTab = ({ storeNumber, ownerId }) => {
                         return { ...item, userName: '名前なし' };
                     }
                 }));
-            };
 
             setEmployees(await attachNames(empRes.data.employees));
             setPendingRequests(await attachNames(pendingRes.data.requests));
         } catch (err) {
-            console.error("スタッフデータの読み込みに失敗しました", err);
+            console.error('スタッフデータの読み込みに失敗しました', err);
         }
     }, [storeNumber]);
 
-    useEffect(() => { 
-        loadData(); 
-    }, [loadData]);
-   
-    const handleProcess = async (relationNumber, isApprove) => {      
-        const statusToSend = isApprove ? "承認" : "断り"; 
-        
-        if(!window.confirm(`${statusToSend}しますか？`)) return;
+    useEffect(() => { loadData(); }, [loadData]);
 
+    useEffect(() => {
+        const handler = () => loadData();
+        window.addEventListener('employeeProcessed', handler);
+        return () => window.removeEventListener('employeeProcessed', handler);
+    }, [loadData]);
+
+    const handleProcess = async (relationNumber, isApprove) => {
+        const statusToSend = isApprove ? '承認' : '断り';
+        if (!window.confirm(`${statusToSend}しますか？`)) return;
         try {
             await employeeApi.processEmployeeRequest(relationNumber, statusToSend);
-            alert("処理が完了しました。");
-            console.log(`スタッフ申請処理完了: ${statusToSend}`);
+            alert('処理が完了しました。');
             loadData();
-        } catch (err) {
-            console.error("処理エラー:", err);
-            alert("処理に失敗しました。");
+        } catch {
+            alert('処理に失敗しました。');
         }
     };
 
     const handleFire = async (relationNumber) => {
-        if(!window.confirm("本当にこのスタッフを解雇しますか？")) return;
+        if (!window.confirm('本当にこのスタッフを解雇しますか？')) return;
         try {
             await employeeApi.fireEmployee(relationNumber, ownerId);
-            alert("解雇しました。");
-            console.log(`スタッフ解雇完了: relationNumber=${relationNumber}`);
+            alert('解雇しました。');
             loadData();
-        } catch (err) {
-            console.error("解雇エラー:", err);
-            alert("解雇に失敗しました。(権限を確認してください)");
+        } catch {
+            alert('解雇に失敗しました。(権限を確認してください)');
         }
     };
 
     return (
-      <div>
+        <div>
             <SectionTitle>📝 承認待ちリスト</SectionTitle>
-            {pendingRequests.length === 0 ? <EmptyMsg>承認待ちの申請はありません。</EmptyMsg> : (
+            {pendingRequests.length === 0 ? (
+                <EmptyMsg>承認待ちの申請はありません。</EmptyMsg>
+            ) : (
                 <List>
                     {pendingRequests.map(req => (
                         <ListItem key={req.relationNumber}>
                             <ItemInfo>
                                 <NameGroup>
-                                    <strong>{req.userName}</strong> 
+                                    <strong>{req.userName}</strong>
                                     <span>(ID: {req.userNumber})</span>
                                 </NameGroup>
-                                <small>申請日: {req.requestDate || '-'}</small>
                             </ItemInfo>
                             <ButtonGroup>
                                 <ActionButton onClick={() => handleProcess(req.relationNumber, true)}>承認</ActionButton>
@@ -186,26 +213,32 @@ const EmployeeTab = ({ storeNumber, ownerId }) => {
                 </List>
             )}
             <Hr />
-            
             <SectionTitle>👥 スタッフリスト</SectionTitle>
-            <List>
-                {employees.map(emp => (
-                    <ListItem key={emp.relationNumber}>
-                        <ItemInfo>
-                            <NameGroup>
-                                <strong>{emp.userName}</strong> 
-                                <span>(ID: {emp.userNumber})</span>
-                            </NameGroup>
-                            <StatusBadge $status={emp.status}>{emp.status}</StatusBadge>
-                        </ItemInfo>
-                        <ActionButton $variant="danger" onClick={() => handleFire(emp.relationNumber)}>解雇</ActionButton>
-                    </ListItem>
-                ))}
-            </List>
+            {employees.length === 0 ? (
+                <EmptyMsg>在籍スタッフがいません。</EmptyMsg>
+            ) : (
+                <List>
+                    {employees.map(emp => (
+                        <ListItem key={emp.relationNumber}>
+                            <ItemInfo>
+                                <NameGroup>
+                                    <strong>{emp.userName}</strong>
+                                    <span>(ID: {emp.userNumber})</span>
+                                </NameGroup>
+                                <StatusBadge $status={emp.status}>{emp.status}</StatusBadge>
+                            </ItemInfo>
+                            <ActionButton $variant="danger" onClick={() => handleFire(emp.relationNumber)}>
+                                解雇
+                            </ActionButton>
+                        </ListItem>
+                    ))}
+                </List>
+            )}
         </div>
     );
 };
 
+/* ─── シフト管理タブ ─── */
 const ShiftTab = ({ storeNumber }) => {
     const [requests, setRequests] = useState([]);
 
@@ -214,63 +247,67 @@ const ShiftTab = ({ storeNumber }) => {
             const res = await shiftApi.getStoreRequests(storeNumber);
             const rawData = res.data.request;
             const shiftArray = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-            const sortedData = [...shiftArray].sort((a, b) => 
-	            a.requestNumber - b.requestNumber);
-            const attachNames = async (list) => {
-                return Promise.all(list.map(async (item) => {
-                    try {
-                        const userRes = await userApi.getUserInfo(item.userNumber);
-                        return { ...item, userName: userRes.data.user.name };
-                    } catch {
-                        return { ...item, userName: '名前なし' };
-                    }
-                }));
-            };
+            const sorted = [...shiftArray].sort((a, b) => a.requestNumber - b.requestNumber);
 
-            const dataWithNames = await attachNames(sortedData);
-            setRequests(dataWithNames);
+            const withNames = await Promise.all(sorted.map(async (item) => {
+                try {
+                    const [userRes, shiftRes] = await Promise.all([
+                        userApi.getUserInfo(item.userNumber),
+                        shiftInfoApi.getShiftByNumber(item.shiftNumber)
+                    ]);
+                    const shift = shiftRes.data.shift;
+                    return {
+                        ...item,
+                        userName: userRes.data.user.name,
+                        shiftDate: shift?.shiftDate || '-',
+                        startTime: shift?.startTime ?? '-',
+                        endTime: shift?.endTime ?? '-',
+                    };
+                } catch {
+                    return { ...item, userName: '名前なし', shiftDate: '-', startTime: '-', endTime: '-' };
+                }
+            }));
+            setRequests(withNames);
         } catch (err) {
-            console.error("シフト情報の読み込みに失敗しました", err);
+            console.error('シフト情報の読み込みに失敗しました', err);
         }
     }, [storeNumber]);
 
-    useEffect(() => { 
-        loadShifts(); 
+    useEffect(() => { loadShifts(); }, [loadShifts]);
+
+    useEffect(() => {
+        const handler = () => loadShifts();
+        window.addEventListener('shiftProcessed', handler);
+        return () => window.removeEventListener('shiftProcessed', handler);
     }, [loadShifts]);
 
     const handleShiftProcess = async (reqNumber, isApprove) => {
-        const statusToSend = isApprove ? "承認" : "断り";
-        const displayMsg = isApprove ? "承認" : "断り";
-
+        const statusToSend = isApprove ? '承認' : '断り';
         try {
             await shiftApi.processRequest(reqNumber, statusToSend);
-            alert(`シフトが${displayMsg}されました。`);
-            console.log(`シフト処理完了: ${statusToSend}`);
+            alert(`シフトが${statusToSend}されました。`);
             loadShifts();
-        } catch (err) {
-            console.error("シフト処理エラー", err);
-            alert("エラーが発生しました。");
+        } catch {
+            alert('エラーが発生しました。');
         }
     };
 
     const handleEmergencyDelete = async (reqNumber) => {
-        if(!window.confirm("管理者権限で削除しますか？ (復元不可)")) return;
+        if (!window.confirm('管理者権限で削除しますか？ (復元不可)')) return;
         try {
             await shiftApi.emergencyDelete(reqNumber);
-            alert("削除しました。");
-            console.log(`シフト強制削除完了: requestNumber=${reqNumber}`);
+            alert('削除しました。');
             loadShifts();
-        } catch (err) {
-            console.error("削除エラー", err);
-            alert("削除に失敗しました。");
+        } catch {
+            alert('削除に失敗しました。');
         }
     };
 
-    const displayStatus = (status) => {
-        if (status === '承認') return '承認済み';
-        if (status === '断り') return '断り';
-        if (status === '待機中') return '承認待機';
-        return status;
+    const displayStatus = (s) => {
+        if (s === '承認') return '承認済み';
+        if (s === '断り') return '断り';
+        if (s === '待機中') return '承認待機';
+        return s;
     };
 
     return (
@@ -282,19 +319,21 @@ const ShiftTab = ({ storeNumber }) => {
                         <tr>
                             <Th>ID</Th>
                             <Th>スタッフ名</Th>
-                            <Th>スタッフ番号</Th>
-                            <Th>シフト番号</Th>
+                            <Th>日付</Th>
+                            <Th>時間</Th>
                             <Th>ステータス</Th>
                             <Th>操作</Th>
                         </tr>
                     </thead>
                     <tbody>
-                        {requests.map(req => (
+                        {requests.length === 0 ? (
+                            <tr><Td colSpan={6} style={{ textAlign: 'center', color: '#9CA3AF', padding: '40px' }}>申請データがありません。</Td></tr>
+                        ) : requests.map(req => (
                             <tr key={req.requestNumber}>
                                 <Td>{req.requestNumber}</Td>
                                 <Td>{req.userName}</Td>
-                                <Td><strong>{req.userNumber}</strong></Td>
-                                <Td>{req.shiftNumber}</Td>
+                                <Td>{req.shiftDate}</Td>
+                                <Td>{req.startTime}時～{req.endTime}時</Td>
                                 <Td>
                                     <StatusBadge $status={req.status}>
                                         {displayStatus(req.status)}
@@ -302,16 +341,16 @@ const ShiftTab = ({ storeNumber }) => {
                                 </Td>
                                 <Td>
                                     <ButtonGroup>
-                                        {(req.status === '待機中') && (
+                                        {req.status === '待機中' && (
                                             <>
                                                 <ActionButton onClick={() => handleShiftProcess(req.requestNumber, true)}>承認</ActionButton>
                                                 <ActionButton $variant="danger" onClick={() => handleShiftProcess(req.requestNumber, false)}>断り</ActionButton>
                                             </>
-                                            )}
-                                        {(req.status === '承認') && (
-                                                <ActionButton $variant="danger" onClick={() => handleEmergencyDelete(req.requestNumber)}>削除</ActionButton>
-                                        )}                                
-                                    </ButtonGroup> 
+                                        )}
+                                        {req.status === '承認' && (
+                                            <ActionButton $variant="danger" onClick={() => handleEmergencyDelete(req.requestNumber)}>削除</ActionButton>
+                                        )}
+                                    </ButtonGroup>
                                 </Td>
                             </tr>
                         ))}
@@ -322,18 +361,14 @@ const ShiftTab = ({ storeNumber }) => {
     );
 };
 
+/* ─── 店舗情報修正タブ ─── */
 const StoreInfoTab = ({ storeNumber }) => {
-    const [formData, setFormData] = useState({
-        storeName: '',
-        storeAddress: '',
-        category: '',
-        autoApprove: false
-    });
+    const [formData, setFormData] = useState({ storeName: '', storeAddress: '', category: '', autoApprove: false });
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         if (!storeNumber) return;
-        
-        const fetchStoreInfo = async () => {
+        const fetch = async () => {
             setLoading(true);
             try {
                 const res = await storeApi.getStoreByNumber(storeNumber);
@@ -344,38 +379,31 @@ const StoreInfoTab = ({ storeNumber }) => {
                     category: data.category || '',
                     autoApprove: data.autoApprove || false
                 });
-            } catch (err) {
-                console.error("店舗情報のロード失敗:", err);
-                alert("店舗情報の読み込みに失敗しました。");
+            } catch {
+                alert('店舗情報の読み込みに失敗しました。');
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchStoreInfo();
+        fetch();
     }, [storeNumber]);
-    
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({ 
-            ...prev, 
-            [name]: type === 'checkbox' ? checked : value 
-        }));
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleSave = async () => {
         if (!formData.storeName || !formData.storeAddress) {
-            alert("店舗名と住所は必須です");
+            alert('店舗名と住所は必須です');
             return;
         }
-        if (!window.confirm("店舗情報を修正しますか？")) return;
-
+        if (!window.confirm('店舗情報を修正しますか？')) return;
         try {
             await storeApi.updateStores(storeNumber, formData);
-            alert("店舗情報が更新されました。");
-        } catch (err) {
-            console.error("Update Error:", err);
-            alert("更新に失敗しました。");
+            alert('店舗情報が更新されました。');
+        } catch {
+            alert('更新に失敗しました。');
         }
     };
 
@@ -384,33 +412,28 @@ const StoreInfoTab = ({ storeNumber }) => {
     return (
         <StoreInfoWrapper>
             <SectionTitle>🏪 店舗情報修正</SectionTitle>
-            
             <InputGroup>
                 <Label>店舗名</Label>
                 <Input name="storeName" value={formData.storeName} onChange={handleChange} placeholder="店舗名" />
             </InputGroup>
-
             <InputGroup>
                 <Label>住所</Label>
                 <Input name="storeAddress" value={formData.storeAddress} onChange={handleChange} placeholder="住所" />
             </InputGroup>
-
             <InputGroup>
                 <Label>カテゴリー</Label>
                 <Input name="category" value={formData.category} onChange={handleChange} placeholder="例: 居酒屋" />
             </InputGroup>
-
             <CheckboxWrapper>
-                <input 
-                    type="checkbox" 
+                <input
+                    type="checkbox"
                     id="autoApprove"
-                    name="autoApprove" 
-                    checked={formData.autoApprove} 
-                    onChange={handleChange} 
+                    name="autoApprove"
+                    checked={formData.autoApprove}
+                    onChange={handleChange}
                 />
-                <label htmlFor="autoApprove">シフト自動承認機能を使用する</label>
+                <label htmlFor="autoApprove">店舗登録自動承認機能を使用する</label>
             </CheckboxWrapper>
-
             <SaveButtonWrapper>
                 <ActionButton onClick={handleSave}>保存</ActionButton>
             </SaveButtonWrapper>
@@ -418,85 +441,86 @@ const StoreInfoTab = ({ storeNumber }) => {
     );
 };
 
+/* ─── ユーザー検索タブ ─── */
 const UserSearchTab = () => {
     const [keyword, setKeyword] = useState('');
     const [results, setResults] = useState([]);
     const [hasSearched, setHasSearched] = useState(false);
 
     const handleSearch = async () => {
-        if(!keyword.trim()) return;
+        if (!keyword.trim()) return;
         try {
             let combinedResults = [];
+
+            // 名前で検索
             try {
                 const res = await userApi.searchUsers(keyword);
                 const data = Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []);
-                setResults(data);
-                setHasSearched(true);
-                console.log(`ユーザー検索結果: ${data.length}件`);
+                combinedResults = [...data];
             } catch (err) {
-                console.error(err);
-                alert("検索中にエラーが発生しました。");
+                console.error('名前検索エラー:', err);
             }
+
+            // 숫자인 경우 userNumber로 추가 검색
             if (/^\d+$/.test(keyword)) {
                 try {
                     const infoRes = await userApi.getUserInfo(keyword);
-                    
-                    const userInfo = infoRes.data.user; 
-
+                    const userInfo = infoRes.data.user;
                     if (userInfo && userInfo.userNumber) {
                         const isDuplicate = combinedResults.some(u => u.userNumber === userInfo.userNumber);
-                        
-                        if (!isDuplicate) {
-                            combinedResults.push(userInfo);
-                        }
+                        if (!isDuplicate) combinedResults.push(userInfo);
                     }
                 } catch (err) {
-                    console.error(err);
-                    alert("該当するユーザー番号が見つかりませんでした。");
+                    console.error('番号検索エラー:', err);
                 }
             }
+
             setResults(combinedResults);
             setHasSearched(true);
-            console.log(`ユーザー検索結果: ${combinedResults.length}件`);
-
         } catch (err) {
-            console.error("検索システム全体のエラー:", err);
-            alert("検索中にエラーが発生しました。");
+            console.error('検索エラー:', err);
+            alert('検索中にエラーが発生しました。');
         }
     };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleSearch();
+    };
+
     return (
-       <div>
+        <div>
             <SectionTitle>🔍 ユーザー検索</SectionTitle>
             <SearchBox>
-                <Input 
-                    value={keyword} 
-                    onChange={(e) => setKeyword(e.target.value)} 
-                    placeholder="名前、ID、またはユーザー番号を入力" 
+                <Input
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="名前、ID、またはユーザー番号を入力"
                 />
                 <ActionButton onClick={handleSearch}>検索</ActionButton>
             </SearchBox>
-            
             <List>
-                {results.length > 0 ? (
-                    results.map((user) => (
-                        <ListItem key={user.userNumber}>
-                            <ItemInfo>
-                                <strong>{user.name}</strong>
-                                <small>ユーザー番号: {user.userNumber}</small>
-                                <small>タイプ: {user.userType}</small>
-                                <small>📧 メール: {user.email || '-'}</small>
-                                <small>📞 電話番号: {user.phoneNumber || '-'}</small>
-                                <small>🎂 生年月日: {user.birthDate || '-'}</small>
-                            </ItemInfo>
-                        </ListItem>
-                    ))
-                ) : (
-                   hasSearched && <EmptyMsg>該当するユーザーが見つかりません。</EmptyMsg>
+                {results.length > 0 ? results.map((u) => (
+                    <ListItem key={u.userNumber}>
+                        <ItemInfo>
+                            <NameGroup>
+                                <strong>{u.name}</strong>
+                                <span>No.{u.userNumber}</span>
+                            </NameGroup>
+                            <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '4px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                <span>タイプ: {u.userType}</span>
+                                {u.email && <span>📧 {u.email}</span>}
+                                {u.phoneNumber && <span>📞 {u.phoneNumber}</span>}
+                                {u.birthDate && <span>🎂 {u.birthDate}</span>}
+                            </div>
+                        </ItemInfo>
+                    </ListItem>
+                )) : hasSearched && (
+                    <EmptyMsg>該当するユーザーが見つかりません。</EmptyMsg>
                 )}
             </List>
         </div>
     );
 };
-
 
 export default AdminPage;

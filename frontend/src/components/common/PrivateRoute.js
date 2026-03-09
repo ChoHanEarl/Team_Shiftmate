@@ -1,5 +1,6 @@
-import { Navigate } from "react-router-dom";
-import useAuthStore from "../../store/authStore";
+import { Navigate } from 'react-router-dom';
+import useAuthStore from '../../store/authStore';
+import Navbar from './NavBar';
 
 export default function PrivateRoute({ children, allowedRole }) {
     const { token, user } = useAuthStore();
@@ -9,9 +10,14 @@ export default function PrivateRoute({ children, allowedRole }) {
     }
 
     if (allowedRole && user?.userType !== allowedRole) {
-        alert("権限がありません。店長のみアクセス可能です。");
+        alert('権限がありません。');
         return <Navigate to="/dashboard" replace />;
     }
 
-    return children;
+    return (
+        <>
+            <Navbar />
+            {children}
+        </>
+    );
 }

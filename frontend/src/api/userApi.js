@@ -20,3 +20,15 @@ export const searchUsersById = (keyword) =>
 
 export const getUserInfo = (userNumber) =>
     axiosInstance.get(`/api/users/${userNumber}`)
+
+export const updateName = (userNumber, name) =>
+    axiosInstance.patch(`/api/users/${userNumber}/name`, {name});
+
+export const updatePhoneNumber = (userNumber, phoneNumber) =>
+    axiosInstance.patch(`/api/users/${userNumber}/phone`, {phoneNumber});
+
+export const updatePassword = (userNumber, currentPassword, newPassword) =>
+    axiosInstance.patch(`/api/users/${userNumber}/password`, {currentPassword, newPassword});
+
+export const deleteUser = (userNumber) =>
+    axiosInstance.delete(`/api/users/${userNumber}`);
