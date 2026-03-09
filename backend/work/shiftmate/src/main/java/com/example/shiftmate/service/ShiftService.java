@@ -58,7 +58,7 @@ public class ShiftService {
                         existingShift.getStartTime(),
                         existingShift.getEndTime())) {
                     throw new ShiftMateException(
-                            String.format("当該日の%d時 ~ %d時の時間帯に既にシフトが存在します。",
+                            String.format("当該日の%d時 ~ %d時と全く同じシフトが既に存在します。",
                                     existingShift.getStartTime(),
                                     existingShift.getEndTime())
                     );
@@ -174,26 +174,8 @@ public class ShiftService {
 
     // isTimeOverlap Method ( 時間帯が重ねた場合 )
     private boolean isTimeOverlap(int start1, int end1, int start2, int end2) {
-        if (start1 < start2 && end1 > start2) {
-            return true;
-        }
-
-        if (start1 >= start2 && end1 <= end2) {
-            return true;
-        }
-
-        if (start1 >= start2 && start1 < end2) {
-            return true;
-        }
-
-        if (start1 <= start2 && end1 >= end2) {
-            return true;
-        }
-
-        return false;
+        return start1 == start2 && end1 == end2;
     }
-
-
 
     // Entity -> DTO 変換
     private ShiftDTO convertToDTO(ShiftEntity entity) {

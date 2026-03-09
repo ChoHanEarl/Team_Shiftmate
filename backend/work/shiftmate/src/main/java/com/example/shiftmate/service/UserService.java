@@ -1,3 +1,4 @@
+//UserService
 package com.example.shiftmate.service;
 
 import com.example.shiftmate.dto.LoginDTO;
@@ -7,9 +8,9 @@ import com.example.shiftmate.exception.ShiftMateException;
 import com.example.shiftmate.repository.UserRepository;
 import com.example.shiftmate.util.JwtUtil;
 import com.example.shiftmate.util.PasswordUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,9 @@ public class UserService {
                     .password(hashedPassword)
                     .name(userDTO.getName())
                     .userType(userDTO.getUserType())
+                    .phoneNumber(userDTO.getPhoneNumber()) // 추가됨
+                    .email(userDTO.getEmail())             // 추가됨
+                    .birthDate(userDTO.getBirthDate())       // 추가됨
                     .build();
 
             UserEntity savedUser = userRepository.save(userEntity);
@@ -69,7 +73,7 @@ public class UserService {
         }
     }
 
-    // 로그인 (JWT 토큰 변환)
+    // ログイン（JWTトークン発行）
     public Map<String, Object> login(LoginDTO loginDTO) {
         try {
             Optional<UserEntity> userOptional = userRepository.findByUserId(loginDTO.getUserId());
@@ -112,10 +116,86 @@ public class UserService {
                 .userId(entity.getUserId())
                 .name(entity.getName())
                 .userType(entity.getUserType())
+                .phoneNumber(entity.getPhoneNumber()) // 추가됨
+                .email(entity.getEmail())             // 추가됨
+                .birthDate(entity.getBirthDate())       // 추가됨
                 .build();
     }
 
-    // 타입별 회원 조회
+
+    // 1. 名前の個別変更
+    @Transactional
+    public UserDTO updateName(Long userNumber, String newName, String currentUserId) {
+
+        // 空白チェック
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new ShiftMateException("名前は空欄にできません。");
+        }
+
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 本人確認
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人の情報のみ修正できます。");
+        }
+
+        user.setName(newName);
+        return convertToDTO(user);
+    }
+
+    // 2. 電話番号の変更
+    @Transactional
+    public UserDTO updatePhoneNumber(Long userNumber, String newPhoneNumber, String currentUserId) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 本人確認
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人の情報のみ修正できます。");
+        }
+
+        user.setPhoneNumber(newPhoneNumber);
+        return convertToDTO(user);
+    }
+
+    // 3. パスワードの変更
+    @Transactional
+    public void updatePassword(Long userNumber, com.example.shiftmate.dto.ChangePasswordDTO passwordDTO, String currentUserId) {
+        UserEntity user = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        // 本人確認
+        if (!user.getUserId().equals(currentUserId)) {
+            throw new ShiftMateException("本人のパスワードのみ変更できます。");
+        }
+
+        // 現在のパスワードが一致するか検証
+        String hashedInputPassword = passwordUtil.hashPassword(passwordDTO.getCurrentPassword());
+
+        if (!hashedInputPassword.equals(user.getPassword())) {
+            throw new ShiftMateException("現在のパスワードが一致しません。");
+        }
+
+        if (passwordDTO.getCurrentPassword().equals(passwordDTO.getNewPassword())) {
+            throw new ShiftMateException("新しいパスワードは現在のパスワードと異なるものを入力してください。");
+        }
+
+        // 新しいパスワードを暗号化して保存
+        user.setPassword(passwordUtil.hashPassword(passwordDTO.getNewPassword()));
+    }
+
+    // ユーザー退会・削除
+    @Transactional
+    public void deleteUser(Long userNumber) {
+        if (!userRepository.existsById(userNumber)) {
+            throw new ShiftMateException("ユーザーが見つかりません。");
+        }
+
+        userRepository.deleteById(userNumber);
+    }
+
+    // 権限（タイプ）別のユーザー一覧取得
     public List<UserDTO> getUsersType(String type) {
         List<UserEntity> users = userRepository.findByUserType(type);
 
@@ -124,7 +204,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    // 회원검색
+    // ユーザー名による検索（部分一致）
     public List<UserDTO> searchUsers(String keyword) {
         List<UserEntity> users = userRepository.findByNameContaining(keyword);
 
@@ -132,12 +212,32 @@ public class UserService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-    //회원 아이디 검색
+    // ユーザーIDによる検索（部分一致）
     public List<UserDTO> searchUsersById(String keyword) {
         List<UserEntity> users = userRepository.findByUserIdContaining(keyword);
 
         return users.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // 特定ユーザーの詳細情報取得
+    @Transactional(readOnly = true)
+    public UserDTO getUserByNumber(Long userNumber, String currentUserId) {
+
+        UserEntity targetUser = userRepository.findById(userNumber)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        UserEntity currentUser = userRepository.findByUserId(currentUserId)
+                .orElseThrow(() -> new ShiftMateException("ユーザーが見つかりません。"));
+
+        boolean isManager = "店長".equals(currentUser.getUserType());
+        boolean isSelf = targetUser.getUserId().equals(currentUserId);
+
+        if (!isManager && !isSelf) {
+            throw new ShiftMateException("本人の情報または店長のみ照会可能です。");
+        }
+
+        return convertToDTO(targetUser);
     }
 }

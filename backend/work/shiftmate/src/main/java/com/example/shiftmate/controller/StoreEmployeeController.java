@@ -32,10 +32,10 @@ public class StoreEmployeeController{
         StoreEmployeeDTO employeeDTO = storeEmployeeService.requestEmployeeApproval(storeNumber, userNumber);
         response.put("success", true);
 
-        if ("継承".equals(employeeDTO.getStatus())){
+        if ("承認".equals(employeeDTO.getStatus())){
             response.put("message", "自動継承されました。シフト申請ができます。");
         } else {
-            response.put("message", "継承要請が完了されました。店長の継承をお待ちください。");
+            response.put("message", "継承要請が完了されました。店長の承認をお待ちください。");
         }
 
         response.put("relation", employeeDTO);
