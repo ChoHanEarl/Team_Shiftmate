@@ -1,6 +1,7 @@
 package com.example.shiftmate.service;
 
 import com.example.shiftmate.dto.StoreDTO;
+import com.example.shiftmate.entity.StoreEmployeeEntity;
 import com.example.shiftmate.entity.StoreEntity;
 import com.example.shiftmate.entity.UserEntity;
 import com.example.shiftmate.exception.ShiftMateException;
@@ -23,6 +24,7 @@ public class StoreService {
     private final ShiftRepository shiftRepository;
     private final ShiftRequestRepository shiftRequestRepository;
     private final StoreEmployeeRepository storeEmployeeRepository;
+    private final NotificationService notificationService;
 
     // --- 店舗登録 ---
     public StoreDTO registerStore(StoreDTO storeDTO) {
@@ -134,10 +136,21 @@ public class StoreService {
         }
 
         try {
+            List<StoreEmployeeEntity> employees = storeEmployeeRepository
+                    .findByStore_StoreNumberAndStatusAndIsRetiredFalse(storeNumber, "承認");
+            for (StoreEmployeeEntity emp : employees) {
+                notificationService.createNotification(
+                        emp.getUser().getUserNumber(),
+                        storeEntity.getStoreName() + "が閉店しました。",
+                        "STORE_CLOSED",
+                        storeNumber
+                );
+            }
             // 制約違反を防ぐため、関連データ（子レコード）から順に削除
             shiftRequestRepository.deleteByShift_Store(storeEntity);
             shiftRepository.deleteByStore(storeEntity);
             storeEmployeeRepository.deleteByStore(storeEntity);
+            storeRepository.delete(storeEntity);
 
             // 最後に親レコード（店舗）を削除
             storeRepository.delete(storeEntity);

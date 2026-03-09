@@ -1,97 +1,91 @@
-import styled from 'styled-components'
-import { Link } from 'react-router-dom'
-import { theme, media } from './theme'
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 export const Page = styled.div`
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${theme.colors.gray100};
-  padding: 16px;
-`
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: ${({ theme }) => theme.colors.bg};
+    padding: 24px;
+`;
 
 export const Card = styled.div`
-  background: white;
-  border-radius: ${theme.radius.lg};
-  box-shadow: ${theme.shadow};
-  padding: 40px 36px;
-  width: 100%;
-  max-width: 380px;
-
-  ${media.sm} {
-    padding: 28px 20px;
-  }
-`
+    background: ${({ theme }) => theme.colors.surface};
+    border-radius: 20px;
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: ${({ theme }) => theme.shadow.lg};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+`;
 
 export const Title = styled.h1`
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: ${theme.colors.primary};
-  text-align: center;
-
-  ${media.sm} {
-    font-size: 1.5rem;
-  }
-`
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: ${({ theme }) => theme.colors.text};
+    margin-bottom: 4px;
+`;
 
 export const Subtitle = styled.p`
-  text-align: center;
-  color: ${theme.colors.gray400};
-  font-size: 0.875rem;
-  margin-bottom: 28px;
-`
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.textMuted};
+    margin-bottom: 32px;
+`;
 
 export const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-`
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+`;
 
 export const Input = styled.input`
-  border: 1.5px solid ${theme.colors.gray200};
-  border-radius: ${theme.radius.md};
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  outline: none;
-  width: 100%;
-  transition: border-color 0.2s;
-  &:focus { border-color: ${theme.colors.primary}; }
-
-  ${media.sm} {
-    padding: 9px 12px;
-    font-size: 0.9rem;
-  }
-`
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid ${({ theme }) => theme.colors.border};
+    border-radius: 10px;
+    font-size: 14px;
+    transition: border-color 0.18s;
+    background: ${({ theme }) => theme.colors.bg};
+    color: ${({ theme }) => theme.colors.text};
+    &:focus { border-color: ${({ theme }) => theme.colors.accent}; background: ${({ theme }) => theme.colors.surface}; }
+    &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+`;
 
 export const SubmitBtn = styled.button`
-  background: ${theme.colors.primary};
-  color: white;
-  padding: 11px;
-  border-radius: ${theme.radius.md};
-  font-size: 0.95rem;
-  font-weight: 600;
-  width: 100%;
-  &:hover { background: ${theme.colors.primaryDark}; }
-
-  ${media.sm} {
-    padding: 10px;
-  }
-`
+    width: 100%;
+    padding: 13px;
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.isDark ? '#0F1117' : '#fff'};
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 6px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.18s;
+    &:hover { opacity: 0.85; }
+`;
 
 export const ErrorMsg = styled.p`
-  color: ${theme.colors.danger};
-  font-size: 0.85rem;
-`
+    font-size: 13px;
+    color: #EF4444;
+    background: #FEF2F2;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #FECACA;
+`;
 
-export const Footer = styled.p`
-  text-align: center;
-  font-size: 0.875rem;
-  color: ${theme.colors.gray500};
-  margin-top: 20px;
-`
+export const Footer = styled.div`
+    margin-top: 24px;
+    text-align: center;
+    font-size: 13px;
+    color: ${({ theme }) => theme.colors.textMuted};
+`;
 
 export const StyledLink = styled(Link)`
-  color: ${theme.colors.primary};
-  &:hover { text-decoration: underline; }
-`
+    color: ${({ theme }) => theme.colors.accent};
+    font-weight: 600;
+    &:hover { text-decoration: underline; }
+`;

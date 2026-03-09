@@ -1,191 +1,108 @@
-import styled from 'styled-components'
-import { Link } from 'react-router-dom'
-import { theme, media } from './theme'
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 export const Page = styled.div`
-  min-height: 100vh;
-  background: linear-gradient(160deg, #f0f4ff 0%, #e8eeff 50%, #f5f0ff 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 16px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%);
-    top: -80px;
-    left: -60px;
-    pointer-events: none;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
-    bottom: -60px;
-    right: -60px;
-    pointer-events: none;
-  }
-
-  ${media.sm} {
-    padding: 40px 16px;
-  }
-`
+    min-height: 100vh;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 24px 60px;
+    position: relative;
+    overflow: hidden;
+    &::before {
+        content: '';
+        position: absolute;
+        top: -150px; right: -150px;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, #DBEAFE 0%, transparent 70%);
+        z-index: 0;
+    }
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -120px; left: -120px;
+        width: 420px; height: 420px;
+        background: radial-gradient(circle, #EDE9FE 0%, transparent 70%);
+        z-index: 0;
+    }
+    > * { position: relative; z-index: 1; }
+`;
 
 export const Hero = styled.div`
-  text-align: center;
-  margin-bottom: 56px;
-  position: relative;
-  z-index: 1;
-
-  ${media.sm} {
-    margin-bottom: 36px;
-  }
-`
+    text-align: center;
+    margin-bottom: 64px;
+`;
 
 export const Logo = styled.h1`
-  font-size: 3.5rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  margin-bottom: 14px;
-  color: ${theme.colors.primary};
+    font-size: clamp(44px, 8vw, 76px);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: #0F0F0F;
+    line-height: 1;
+    margin-bottom: 16px;
+`;
 
-  ${media.sm} {
-    font-size: 2.4rem;
-  }
-`
+export const LogoAccent = styled.span`
+    color: #3B82F6;
+`;
 
 export const Tagline = styled.p`
-  font-size: 1.1rem;
-  color: ${theme.colors.gray500};
-  letter-spacing: 0.3px;
-
-  ${media.sm} {
-    font-size: 0.95rem;
-  }
-`
+    font-size: 18px;
+    color: #6B7280;
+`;
 
 export const FeatureGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 880px;
-  width: 100%;
-  margin-bottom: 52px;
-  position: relative;
-  z-index: 1;
-
-  ${media.md} {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  ${media.sm} {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 36px;
-  }
-`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+    max-width: 900px;
+    width: 100%;
+    margin-bottom: 60px;
+`;
 
 export const FeatureCard = styled.div`
-  background: white;
-  border: 1px solid rgba(79, 70, 229, 0.1);
-  border-radius: 16px;
-  padding: 28px 22px;
-  text-align: center;
-  box-shadow: 0 2px 16px rgba(79, 70, 229, 0.06);
-  transition: box-shadow 0.25s, transform 0.25s;
+    background: #F9FAFB;
+    border: 1px solid #F3F4F6;
+    border-radius: 16px;
+    padding: 26px;
+    transition: all 0.2s;
+    &:hover {
+        background: #fff;
+        border-color: #DBEAFE;
+        box-shadow: 0 8px 24px rgba(59,130,246,0.08);
+        transform: translateY(-2px);
+    }
+`;
 
-  &:hover {
-    box-shadow: 0 8px 28px rgba(79, 70, 229, 0.13);
-    transform: translateY(-3px);
-  }
-
-  ${media.sm} {
-    padding: 20px 16px;
-  }
-`
-
-export const FeatureIcon = styled.div`
-  font-size: 1.9rem;
-  margin-bottom: 14px;
-`
-
-export const FeatureTitle = styled.h3`
-  font-size: 1rem;
-  font-weight: 700;
-  color: ${theme.colors.gray800};
-  margin-bottom: 8px;
-`
-
-export const FeatureDesc = styled.p`
-  font-size: 0.85rem;
-  color: ${theme.colors.gray500};
-  line-height: 1.6;
-`
+export const FeatureIcon  = styled.div` font-size: 26px; margin-bottom: 12px; `;
+export const FeatureTitle = styled.h3`  font-size: 15px; font-weight: 700; color: #111827; margin-bottom: 8px; `;
+export const FeatureDesc  = styled.p`  font-size: 13px; color: #9CA3AF; line-height: 1.65; `;
 
 export const BtnGroup = styled.div`
-  display: flex;
-  gap: 14px;
-  position: relative;
-  z-index: 1;
-
-  ${media.sm} {
-    flex-direction: column;
-    width: 100%;
-    max-width: 320px;
-    gap: 10px;
-  }
-`
+    display: flex;
+    gap: 14px;
+`;
 
 export const LoginBtn = styled(Link)`
-  background: ${theme.colors.primary};
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 14px 52px;
-  border-radius: 10px;
-  letter-spacing: 0.3px;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    background: ${theme.colors.primaryDark};
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.4);
-  }
-
-  ${media.sm} {
-    text-align: center;
-    padding: 13px;
-  }
-`
+    padding: 14px 40px;
+    background: #0F0F0F;
+    color: #fff;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    transition: all 0.18s;
+    &:hover { background: #374151; transform: translateY(-1px); }
+`;
 
 export const RegisterBtn = styled(Link)`
-  background: white;
-  color: ${theme.colors.primary};
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 14px 52px;
-  border-radius: 10px;
-  border: 1.5px solid ${theme.colors.primary};
-  letter-spacing: 0.3px;
-  transition: background 0.2s, transform 0.2s;
-
-  &:hover {
-    background: ${theme.colors.primaryLight};
-    transform: translateY(-1px);
-  }
-
-  ${media.sm} {
-    text-align: center;
-    padding: 13px;
-  }
-`
+    padding: 14px 40px;
+    background: #fff;
+    color: #374151;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    border: 1.5px solid #E5E7EB;
+    transition: all 0.18s;
+    &:hover { border-color: #3B82F6; color: #3B82F6; transform: translateY(-1px); }
+`;

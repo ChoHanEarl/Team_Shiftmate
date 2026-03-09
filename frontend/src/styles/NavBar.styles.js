@@ -1,95 +1,93 @@
-import styled from 'styled-components'
-import { Link } from 'react-router-dom'
-import { theme, media } from './theme'
+import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 export const Nav = styled.nav`
-  background: ${theme.colors.primary};
-  color: white;
-  padding: 0 24px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: ${({ theme }) => theme.isDark ? 'rgba(26,29,39,0.95)' : 'rgba(255,255,255,0.92)'};
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    box-shadow: ${({ theme }) => theme.shadow.sm};
+`;
 
-  ${media.sm} {
-    padding: 0 16px;
-    height: 50px;
-  }
-`
-
-export const Logo = styled(Link)`
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: white;
-
-  ${media.sm} {
-    font-size: 1.1rem;
-  }
-`
+export const LogoLink = styled(Link)`
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: opacity 0.18s;
+    &:hover { opacity: 0.75; }
+`;
 
 export const Right = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
 
-  ${media.md} {
-    gap: 10px;
-  }
-
-  ${media.sm} {
+export const UserInfo = styled.div`
+    display: flex;
+    align-items: center;
     gap: 8px;
-  }
-`
+    font-size: 14px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textSecondary};
+`;
 
-export const UserInfo = styled.span`
-  font-size: 0.9rem;
-  opacity: 0.9;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  ${media.sm} {
-    font-size: 0.8rem;
-    gap: 4px;
-  }
-`
-
-export const Badge = styled.span`
-  background: rgba(255,255,255,0.2);
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 20px;
-
-  ${media.sm} {
-    display: none;
-  }
-`
+export const RoleBadge = styled.span`
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: ${p => p.$isOwner ? '#EDE9FE' : '#DBEAFE'};
+    color: ${p => p.$isOwner ? '#6D28D9' : '#1D4ED8'};
+`;
 
 export const NavLink = styled(Link)`
-  font-size: 0.875rem;
-  color: rgba(255,255,255,0.85);
-  &:hover { color: white; }
-
-  ${media.sm} {
-    font-size: 0.8rem;
-  }
-`
+    font-size: 14px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.18s;
+    &:hover {
+        background: ${({ theme }) => theme.colors.borderLight};
+        color: ${({ theme }) => theme.colors.text};
+    }
+`;
 
 export const LogoutBtn = styled.button`
-  font-size: 0.875rem;
-  background: rgba(0,0,0,0.2);
-  color: white;
-  padding: 6px 14px;
-  border-radius: ${theme.radius.sm};
-  &:hover { background: rgba(0,0,0,0.35); }
+    font-size: 13px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.textMuted};
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid ${({ theme }) => theme.colors.border};
+    background: transparent;
+    transition: all 0.18s;
+    &:hover { background: #FEF2F2; color: #EF4444; border-color: #FCA5A5; }
+`;
 
-  ${media.sm} {
-    font-size: 0.8rem;
-    padding: 5px 10px;
-  }
-`
+export const DarkToggleBtn = styled.button`
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.surface};
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s;
+    &:hover {
+        border-color: ${({ theme }) => theme.colors.accent};
+        transform: rotate(20deg) scale(1.1);
+    }
+`;

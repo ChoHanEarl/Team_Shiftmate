@@ -1,5 +1,6 @@
+import ShiftMateLogo from '../components/common/ShiftMateLogo';
 import {
-  Page, Hero, Logo, Tagline,
+  Page, Hero, Tagline,
   FeatureGrid, FeatureCard, FeatureIcon, FeatureTitle, FeatureDesc,
   BtnGroup, LoginBtn, RegisterBtn
 } from '../styles/FirstPage.styles';
@@ -41,8 +42,8 @@ export default function FirstPage() {
   return (
     <Page>
       <Hero>
-        <Logo>ShiftMate</Logo>
-        <Tagline>シフト管理をもっとスマートに</Tagline>
+        <ShiftMateLogo size="lg" />
+        <Tagline style={{ marginTop: 20 }}>シフト管理をもっとスマートに</Tagline>
       </Hero>
 
       <FeatureGrid>

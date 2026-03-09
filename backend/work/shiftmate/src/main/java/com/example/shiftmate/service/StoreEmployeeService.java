@@ -26,6 +26,7 @@ public class StoreEmployeeService {
     private final StoreEmployeeRepository storeEmployeeRepository;
     private final StoreRepository storeRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public StoreEmployeeDTO requestEmployeeApproval(Long storeNumber, Long userNumber) {
         try {
@@ -56,8 +57,15 @@ public class StoreEmployeeService {
             }
 
             // 重複確認
-            if(storeEmployeeRepository.existsByStore_StoreNumberAndUser_UserNumber(storeNumber, userNumber)) {
-                throw new ShiftMateException("すでに承認要請をした店舗です。");
+            Optional<StoreEmployeeEntity> existing = storeEmployeeRepository
+                    .findByStore_StoreNumberAndUser_UserNumber(storeNumber, userNumber);
+            if (existing.isPresent()) {
+                StoreEmployeeEntity existingRelation = existing.get();
+                if(existingRelation.getIsRetired()) {
+                    storeEmployeeRepository.delete(existingRelation);
+                } else {
+                    throw new ShiftMateException("すでに承認要請をした店舗です。");
+                }
             }
 
             // 自動承認？手動承認？
@@ -77,6 +85,21 @@ public class StoreEmployeeService {
 
             StoreEmployeeEntity savedEmployee = storeEmployeeRepository.save(employeeEntity);
 
+            if("待機中".equals(savedEmployee.getStatus())) {
+                notificationService.createNotification(
+                        store.getOwner().getUserNumber(),
+                        user.getName() + "さんが「" + store.getStoreName() + "」への加入を申請しました。",
+                        "EMPLOYEE_REQUEST",
+                        savedEmployee.getRelationNumber()
+                );
+            } else {
+                notificationService.createNotification(
+                        userNumber,
+                        "「"+ store.getStoreName() + "」への加入申請が自動承認されました。",
+                        "EMPLOYEE_RESULT",
+                        savedEmployee.getRelationNumber()
+                );
+            }
             return convertToDTO(savedEmployee);
         } catch (ShiftMateException e) {
             throw e;
@@ -123,6 +146,15 @@ public class StoreEmployeeService {
 
             StoreEmployeeEntity updatedEmployee = storeEmployeeRepository.save(employee);
 
+            String resultMsg = "承認".equals(status)
+                    ? "「" + employee.getStore().getStoreName() + "」への加入申請が承認されました。"
+                    : "「" + employee.getStore().getStoreName() + "」への加入申請が断られました。";
+            notificationService.createNotification(
+                    employee.getUser().getUserNumber(),
+                    resultMsg,
+                    "EMPLOYEE_RESULT",
+                    updatedEmployee.getRelationNumber()
+            );
             return convertToDTO(updatedEmployee);
         } catch (ShiftMateException e) {
             throw e;
@@ -136,7 +168,7 @@ public class StoreEmployeeService {
     public List<StoreEmployeeDTO> getStoreEmployees(Long storeNumber) {
         try {
             List<StoreEmployeeEntity> employees = storeEmployeeRepository
-                    .findByStore_StoreNumberAndStatus(storeNumber, "承認");
+                    .findByStore_StoreNumberAndStatusAndIsRetiredFalse(storeNumber, "承認");
             return employees.stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
@@ -182,7 +214,7 @@ public class StoreEmployeeService {
     // ユーザーの全ての店舗関係照会
     public List<StoreEmployeeDTO> getUserStoreRelations(Long userNumber) {
         try {
-            List<StoreEmployeeEntity> relations = storeEmployeeRepository.findByUser_UserNumber(userNumber);
+            List<StoreEmployeeEntity> relations = storeEmployeeRepository.findByUser_UserNumberAndIsRetiredFalse(userNumber);
             return relations.stream()
                     .map(this::convertToDTO)
                     .collect(Collectors.toList());
@@ -246,6 +278,13 @@ public class StoreEmployeeService {
             employee.setIsRetired(true);
             employee.setExitDate(LocalDate.now());
             storeEmployeeRepository.save(employee);
+
+            notificationService.createNotification(
+                    employee.getUser().getUserNumber(),
+                    employee.getStore().getStoreName() + "から解雇されました。",
+                    "STORE_FIRED",
+                    employee.getRelationNumber()
+            );
 
         } catch (ShiftMateException e) {
             throw e;

@@ -177,6 +177,10 @@ public class UserService {
             throw new ShiftMateException("現在のパスワードが一致しません。");
         }
 
+        if (passwordDTO.getCurrentPassword().equals(passwordDTO.getNewPassword())) {
+            throw new ShiftMateException("新しいパスワードは現在のパスワードと異なるものを入力してください。");
+        }
+
         // 新しいパスワードを暗号化して保存
         user.setPassword(passwordUtil.hashPassword(passwordDTO.getNewPassword()));
     }
