@@ -36,7 +36,10 @@ const DashboardPage = () => {
                 if (resAll.data?.success) setAllStores(resAll.data.stores || []);
 
                 const resMy = await storeApi.getUserStoreRelations();
-                if (resMy.data?.success) setMyStores(resMy.data.relations || []);
+                if (resMy.data?.success) {
+                    const filtered = (resMy.data.relations || []).filter(r => r.status !== '断り');
+                    setMyStores(filtered);
+                }
             }
         } catch (err) {
             console.error('データロード失敗:', err);

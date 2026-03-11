@@ -13,8 +13,9 @@ public interface ShiftRequestRepository extends JpaRepository<ShiftRequestEntity
     List<ShiftRequestEntity> findByShift_ShiftNumber(Long shiftNumber);
     List<ShiftRequestEntity> findByUser_UserNumber(Long userNumber);
     List<ShiftRequestEntity> findByShift_Store_StoreNumber(Long storeNumber);
-    Optional<ShiftRequestEntity> findByShift_ShiftNumberAndUser_UserNumber(Long shiftNumber, Long userNumber);
+    List<ShiftRequestEntity> findByShift_ShiftNumberAndStatus(Long shiftNumber, String status);
     Optional<ShiftRequestEntity> findByRequestNumberAndUser_UserNumber(Long requestNumber, Long userNumber);
     boolean existsByShift_ShiftNumberAndUser_UserNumber(Long shiftNumber, Long userNumber);
     void deleteByShift_Store(StoreEntity store);
+    void deleteByUser_UserNumber(Long userNumber);
 }

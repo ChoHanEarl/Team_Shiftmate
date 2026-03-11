@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getMemoryToken } from '../store/authStore';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8081',
+    baseURL: 'https://shiftmate.site',
     headers: { 'Content-Type': 'application/json' },
     withCredentials: true, // 쿠키 기반 확장 시 대비
 });

@@ -36,7 +36,9 @@ const MyPage = () => {
             const rawData = relationRes.data.relations;
             const relations = Array.isArray(rawData) ? rawData : [];
 
-            const storePromises = relations.map(async (r) => {
+            const storePromises = relations
+                .filter(r => r.status !== '断り')
+                .map(async (r) => {
                 const storeId = r.storeNumber;
                 if (!storeId) return null;
                 try {
