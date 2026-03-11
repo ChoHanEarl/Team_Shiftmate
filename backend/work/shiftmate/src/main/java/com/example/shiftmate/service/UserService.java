@@ -5,6 +5,9 @@ import com.example.shiftmate.dto.LoginDTO;
 import com.example.shiftmate.dto.UserDTO;
 import com.example.shiftmate.entity.UserEntity;
 import com.example.shiftmate.exception.ShiftMateException;
+import com.example.shiftmate.repository.NotificationRepository;
+import com.example.shiftmate.repository.ShiftRequestRepository;
+import com.example.shiftmate.repository.StoreEmployeeRepository;
 import com.example.shiftmate.repository.UserRepository;
 import com.example.shiftmate.util.JwtUtil;
 import com.example.shiftmate.util.PasswordUtil;
@@ -26,6 +29,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordUtil passwordUtil;
     private final JwtUtil jwtUtil;
+    private final ShiftRequestRepository shiftRequestRepository;
+    private final StoreEmployeeRepository storeEmployeeRepository;
+    private final NotificationRepository notificationRepository;
 
     public boolean checkUserIdDuplicate(String userId) {
         try {
@@ -191,6 +197,10 @@ public class UserService {
         if (!userRepository.existsById(userNumber)) {
             throw new ShiftMateException("ユーザーが見つかりません。");
         }
+
+        shiftRequestRepository.deleteByUser_UserNumber(userNumber);
+        storeEmployeeRepository.deleteByUser_UserNumber(userNumber);
+        notificationRepository.deleteByUser_UserNumber(userNumber);
 
         userRepository.deleteById(userNumber);
     }

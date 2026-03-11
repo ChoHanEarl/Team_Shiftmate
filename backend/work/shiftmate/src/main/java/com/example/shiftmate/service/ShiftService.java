@@ -2,9 +2,11 @@ package com.example.shiftmate.service;
 
 import com.example.shiftmate.dto.ShiftDTO;
 import com.example.shiftmate.entity.ShiftEntity;
+import com.example.shiftmate.entity.ShiftRequestEntity;
 import com.example.shiftmate.entity.StoreEntity;
 import com.example.shiftmate.exception.ShiftMateException;
 import com.example.shiftmate.repository.ShiftRepository;
+import com.example.shiftmate.repository.ShiftRequestRepository;
 import com.example.shiftmate.repository.StoreRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ public class ShiftService {
 
     private final ShiftRepository shiftRepository;
     private final StoreRepository storeRepository;
+    private final ShiftRequestRepository shiftRequestRepository;
+    private final NotificationService notificationService;
 
     // シフト生成
     public ShiftDTO createShift(ShiftDTO shiftDTO) {
@@ -159,7 +163,12 @@ public class ShiftService {
         if (shiftDTO.getShiftDate() != null) shiftEntity.setShiftDate(shiftDTO.getShiftDate());
         if (shiftDTO.getStartTime() != null) shiftEntity.setStartTime(shiftDTO.getStartTime());
         if (shiftDTO.getEndTime() != null) shiftEntity.setEndTime(shiftDTO.getEndTime());
-        if (shiftDTO.getMaxEmployees() != null) shiftEntity.setMaxEmployees(shiftDTO.getMaxEmployees());
+        if (shiftDTO.getMaxEmployees() != null) {
+            if (shiftDTO.getMaxEmployees() < shiftEntity.getCurrentEmployees()) {
+                throw new ShiftMateException("現在承認済みの人数（" + shiftEntity.getCurrentEmployees() + "名）より少なく設定できません。");
+            }
+            shiftEntity.setMaxEmployees(shiftDTO.getMaxEmployees());
+        }
 
         // 4. 結果返却のため、新しいDTOに変換 (エンティティ -> DTO)
         return convertToDTO(shiftEntity);
@@ -169,6 +178,23 @@ public class ShiftService {
     public void deleteShift(Long shiftNumber) {
         ShiftEntity shiftEntity = shiftRepository.findById(shiftNumber)
                 .orElseThrow(() -> new ShiftMateException("該当するシフトが見つかりません"));
+        if(shiftEntity.getCurrentEmployees() > 0) {
+            throw new ShiftMateException("承認済みのスタッフがいるシフトは削除できません。");
+        }
+        List<ShiftRequestEntity> pendingRequests = shiftRequestRepository
+                .findByShift_ShiftNumberAndStatus(shiftNumber, "待機中");
+
+        String shiftInfo = shiftEntity.getShiftDate() + "（" + shiftEntity.getStartTime()
+                + "時〜" + shiftEntity.getEndTime() + "時）";
+
+        for (ShiftRequestEntity request : pendingRequests) {
+            notificationService.createNotification(
+                    request.getUser().getUserNumber(),
+                    shiftInfo + "のシフトが削除されました。",
+                    "SHIFT_EMERGENCY",
+                    shiftNumber
+            );
+        }
         shiftRepository.delete(shiftEntity);
     }
 

@@ -56,8 +56,8 @@ Thumbs.db
 *.sqlite
 
 # ==================== Config ====================
-# 개인 설정만 무시
 **/application-local.properties
+**/application-prod.properties
 
 # ==================== Logs ====================
 logs/
