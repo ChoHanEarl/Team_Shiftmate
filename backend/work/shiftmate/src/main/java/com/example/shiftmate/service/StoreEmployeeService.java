@@ -61,7 +61,7 @@ public class StoreEmployeeService {
                     .findByStore_StoreNumberAndUser_UserNumber(storeNumber, userNumber);
             if (existing.isPresent()) {
                 StoreEmployeeEntity existingRelation = existing.get();
-                if(existingRelation.getIsRetired()) {
+                if(existingRelation.getIsRetired() || "断り".equals(existingRelation.getStatus())) {
                     storeEmployeeRepository.delete(existingRelation);
                 } else {
                     throw new ShiftMateException("すでに承認要請をした店舗です。");

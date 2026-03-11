@@ -18,4 +18,5 @@ public interface StoreEmployeeRepository extends JpaRepository<StoreEmployeeEnti
     boolean existsByStore_StoreNumberAndUser_UserNumber(Long storeNumber, Long userNumber);
     List<StoreEmployeeEntity> findByStore_StoreNumberAndStatus(Long storeNumber, String status);
     void deleteByStore(StoreEntity store);
+    void deleteByUser_UserNumber(Long userNumber);
 }

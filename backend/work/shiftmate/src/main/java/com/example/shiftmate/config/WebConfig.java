@@ -33,7 +33,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3030")
+                .allowedOrigins(
+                        "http://localhost:3030",
+                        "http://shiftmate-frontend.s3-website.ap-northeast-2.amazonaws.com",
+                        "https://shiftmate.site",
+                        "http://shiftmate.site",
+                        "https://www.shiftmate.site",
+                        "http://www.shiftmate.site")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

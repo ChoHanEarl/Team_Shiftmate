@@ -112,7 +112,9 @@ const ShiftPage = () => {
         try {
             await shiftApi.deleteShift(num);
             fetchData();
-        } catch { alert('削除に失敗しました。'); }
+        } catch(err) {  
+            alert(err.response?.data?.message || '削除に失敗しました。');
+        }
     };
 
     const handleApply = async (shiftNumber) => {
@@ -134,8 +136,10 @@ const ShiftPage = () => {
         } catch { alert('キャンセルに失敗しました。'); }
     };
 
-    const getMyRequest = (shiftNumber) =>
-        requests.find(r => r.shiftNumber === shiftNumber) || null;
+    const getMyRequest = (shiftNumber) => {
+        if (isOwner) return null;
+        return requests.find(r => r.shiftNumber === shiftNumber) || null;
+    }
 
     const uniqueDates = [...new Set(shifts.map(s => s.shiftDate))].sort();
 
